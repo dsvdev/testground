@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -74,6 +75,10 @@ func (c *Container) ConnectionString() string {
 		c.port,
 		c.cfg.database,
 	)
+}
+
+func (c *Container) Conn(ctx context.Context) (*pgx.Conn, error) {
+	return pgx.Connect(ctx, c.ConnectionString())
 }
 
 func (c *Container) Terminate(ctx context.Context) error {

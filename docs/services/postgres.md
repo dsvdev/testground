@@ -85,9 +85,32 @@ Returns the connection string in format:
 postgres://user:password@host:port/database?sslmode=disable
 ```
 
+### `(*Container) Conn(ctx context.Context) (*pgx.Conn, error)`
+
+Returns a new pgx connection to the container. Caller is responsible for closing.
+
+```go
+conn, err := container.Conn(ctx)
+if err != nil {
+    t.Fatal(err)
+}
+defer conn.Close(ctx)
+```
+
 ### `(*Container) Terminate(ctx context.Context) error`
 
 Stops and removes the container. Always call this in `t.Cleanup()`.
+
+### `(*Container) Exec(sql string, args pgx.NamedArgs) testground.Precondition`
+
+Returns a [Precondition](../preconditions.md) that executes SQL when applied.
+
+```go
+testground.Apply(t,
+    container.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`, nil),
+    container.Exec(`INSERT INTO users (name) VALUES (@name)`, pgx.NamedArgs{"name": "Alice"}),
+)
+```
 
 ## Port Allocation
 
