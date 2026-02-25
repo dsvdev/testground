@@ -16,18 +16,27 @@ No Docker Compose. No shared environments. No cleanup.
 func TestWithPostgres(t *testing.T) {
     ctx := context.Background()
 
-    container, err := postgres.New(ctx)
+    pg, err := postgres.New(ctx)
     if err != nil {
         t.Fatal(err)
     }
     t.Cleanup(func() {
-        container.Terminate(context.Background())
+        pg.Terminate(context.Background())
     })
 
-    conn, _ := pgx.Connect(ctx, container.ConnectionString())
+    // Setup test data with preconditions
+    testground.Apply(t,
+        pg.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`, nil),
+        pg.Exec(`INSERT INTO users (name) VALUES (@name)`, pgx.NamedArgs{"name": "Alice"}),
+    )
+
+    // Run your tests
+    conn, _ := pg.Conn(ctx)
     defer conn.Close(ctx)
 
-    // Your test code here
+    var name string
+    conn.QueryRow(ctx, "SELECT name FROM users WHERE id = 1").Scan(&name)
+    // assert name == "Alice"
 }
 ```
 
