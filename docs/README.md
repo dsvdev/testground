@@ -5,6 +5,7 @@
 - [Suite](suite.md) — Test lifecycle and container management
 - [Preconditions](preconditions.md) — Declarative test data setup
 - [Network](network.md) — Shared Docker network for container-to-container communication
+- [faker](faker.md) — Random test data generators (crypto/rand)
 
 ## Client
 
