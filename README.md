@@ -10,6 +10,10 @@ No Docker Compose. No shared environments. No cleanup.
 
 - [PostgreSQL](docs/services/postgres.md)
 
+## Client
+
+- [HTTP](docs/client/http.md) — fluent HTTP client with assertions
+
 ## Quick Start
 
 ```go

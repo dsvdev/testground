@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"testground/services/postgres"
-	"testground/suite"
+	"github.com/dsvdev/testground/services/postgres"
+	"github.com/dsvdev/testground/suite"
 )
 
 // mockManaged tracks whether Terminate was called

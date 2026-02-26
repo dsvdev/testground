@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"testground/services/postgres"
+	"github.com/dsvdev/testground/services/postgres"
 )
 
 func TestPostgresContainer(t *testing.T) {
