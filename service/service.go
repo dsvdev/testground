@@ -6,13 +6,13 @@ import (
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
+
+	"github.com/dsvdev/testground/internal/container"
 )
 
 type Container struct {
-	container testcontainers.Container
-	cfg       config
-	host      string
-	port      string
+	base *container.Base
+	cfg  config
 }
 
 func New(ctx context.Context, opts ...Option) (*Container, error) {
@@ -37,45 +37,22 @@ func New(ctx context.Context, opts ...Option) (*Container, error) {
 		req.Networks = []string{cfg.networkName}
 	}
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
+	base, err := container.Start(ctx, req, exposedPort)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start container: %w", err)
+		return nil, err
 	}
 
-	host, err := container.Host(ctx)
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, fmt.Errorf("failed to get host: %w", err)
-	}
-
-	mappedPort, err := container.MappedPort(ctx, exposedPort)
-	if err != nil {
-		container.Terminate(ctx)
-		return nil, fmt.Errorf("failed to get mapped port: %w", err)
-	}
-
-	return &Container{
-		container: container,
-		cfg:       cfg,
-		host:      host,
-		port:      mappedPort.Port(),
-	}, nil
+	return &Container{base: base, cfg: cfg}, nil
 }
 
 func (c *Container) URL() string {
-	return fmt.Sprintf("http://%s:%s", c.host, c.port)
+	return fmt.Sprintf("http://%s:%s", c.base.Host(), c.base.Port())
 }
 
 func (c *Container) Port() string {
-	return c.port
+	return c.base.Port()
 }
 
 func (c *Container) Terminate(ctx context.Context) error {
-	if c.container != nil {
-		return c.container.Terminate(ctx)
-	}
-	return nil
+	return c.base.Terminate(ctx)
 }
