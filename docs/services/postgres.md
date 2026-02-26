@@ -12,18 +12,17 @@ import "testground/services/postgres"
 
 ```go
 func TestWithPostgres(t *testing.T) {
+    s := suite.New(t)
     ctx := context.Background()
 
-    container, err := postgres.New(ctx)
+    pg, err := postgres.New(ctx)
     if err != nil {
         t.Fatal(err)
     }
-    t.Cleanup(func() {
-        container.Terminate(context.Background())
-    })
+    s.Add(pg)  // Suite handles cleanup
 
     // Connect using pgx
-    conn, err := pgx.Connect(ctx, container.ConnectionString())
+    conn, err := pg.Conn(ctx)
     if err != nil {
         t.Fatal(err)
     }
@@ -99,15 +98,20 @@ defer conn.Close(ctx)
 
 ### `(*Container) Terminate(ctx context.Context) error`
 
-Stops and removes the container. Always call this in `t.Cleanup()`.
+Stops and removes the container. Prefer using [Suite](../suite.md) instead of calling manually:
 
-### `(*Container) Exec(sql string, args pgx.NamedArgs) testground.Precondition`
+```go
+s := suite.New(t)
+s.Add(pg)  // Terminate called automatically
+```
 
-Returns a [Precondition](../preconditions.md) that executes SQL when applied.
+### `(*Container) Exec(sql string, args ...pgx.NamedArgs) testground.Precondition`
+
+Returns a [Precondition](../preconditions.md) that executes SQL when applied. Args are optional.
 
 ```go
 testground.Apply(t,
-    container.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`, nil),
+    container.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`),
     container.Exec(`INSERT INTO users (name) VALUES (@name)`, pgx.NamedArgs{"name": "Alice"}),
 )
 ```

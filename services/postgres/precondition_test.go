@@ -45,7 +45,7 @@ func TestExecPrecondition(t *testing.T) {
 				id   BIGSERIAL PRIMARY KEY,
 				name TEXT NOT NULL
 			)
-		`, nil),
+		`),
 		InsertUser("Alice"),
 		InsertUser("Bob"),
 	)

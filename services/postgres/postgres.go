@@ -51,11 +51,13 @@ func New(ctx context.Context, opts ...Option) (*Container, error) {
 
 	host, err := container.Host(ctx)
 	if err != nil {
+		container.Terminate(ctx)
 		return nil, fmt.Errorf("failed to get host: %w", err)
 	}
 
 	mappedPort, err := container.MappedPort(ctx, "5432")
 	if err != nil {
+		container.Terminate(ctx)
 		return nil, fmt.Errorf("failed to get mapped port: %w", err)
 	}
 

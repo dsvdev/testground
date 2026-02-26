@@ -13,30 +13,41 @@ No Docker Compose. No shared environments. No cleanup.
 ## Quick Start
 
 ```go
-func TestWithPostgres(t *testing.T) {
+// Custom precondition for your domain
+func InsertUser(pg *postgres.Container) func(name string) testground.Precondition {
+    return func(name string) testground.Precondition {
+        return pg.Exec(
+            `INSERT INTO users (name) VALUES (@name)`,
+            pgx.NamedArgs{"name": name},
+        )
+    }
+}
+
+func TestUserSuite(t *testing.T) {
+    s := suite.New(t)
     ctx := context.Background()
 
-    pg, err := postgres.New(ctx)
-    if err != nil {
-        t.Fatal(err)
-    }
-    t.Cleanup(func() {
-        pg.Terminate(context.Background())
+    pg, _ := postgres.New(ctx)
+    s.Add(pg)
+
+    // Run migrations once
+    s.BeforeAll(func(ctx context.Context) {
+        testground.Apply(t, pg.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`))
     })
 
-    // Setup test data with preconditions
-    testground.Apply(t,
-        pg.Exec(`CREATE TABLE users (id BIGSERIAL, name TEXT)`, nil),
-        pg.Exec(`INSERT INTO users (name) VALUES (@name)`, pgx.NamedArgs{"name": "Alice"}),
-    )
+    // Create precondition factory
+    insertUser := InsertUser(pg)
 
-    // Run your tests
-    conn, _ := pg.Conn(ctx)
-    defer conn.Close(ctx)
+    s.Run("create and fetch user", func(t *testing.T) {
+        testground.Apply(t, insertUser("Alice"))
 
-    var name string
-    conn.QueryRow(ctx, "SELECT name FROM users WHERE id = 1").Scan(&name)
-    // assert name == "Alice"
+        conn, _ := pg.Conn(ctx)
+        defer conn.Close(ctx)
+
+        var name string
+        conn.QueryRow(ctx, "SELECT name FROM users WHERE id = 1").Scan(&name)
+        // assert name == "Alice"
+    })
 }
 ```
 

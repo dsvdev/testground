@@ -13,10 +13,10 @@ import (
 type execPrecondition struct {
 	container *Container
 	sql       string
-	args      pgx.NamedArgs
+	args      []pgx.NamedArgs
 }
 
-func (c *Container) Exec(sql string, args pgx.NamedArgs) testground.Precondition {
+func (c *Container) Exec(sql string, args ...pgx.NamedArgs) testground.Precondition {
 	return &execPrecondition{container: c, sql: sql, args: args}
 }
 
@@ -27,6 +27,11 @@ func (p *execPrecondition) Apply(ctx context.Context, t *testing.T) error {
 	}
 	defer conn.Close(ctx)
 
-	_, err = conn.Exec(ctx, p.sql, p.args)
+	var args pgx.NamedArgs
+	if len(p.args) > 0 {
+		args = p.args[0]
+	}
+
+	_, err = conn.Exec(ctx, p.sql, args)
 	return err
 }
