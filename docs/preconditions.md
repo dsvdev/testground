@@ -40,16 +40,18 @@ If any precondition fails, the test stops immediately with a clear error message
 
 ### PostgreSQL: `Exec`
 
-Execute SQL statements with named arguments:
+Execute SQL statements. Named arguments are optional:
 
 ```go
+// Without arguments
 container.Exec(`
     CREATE TABLE users (
         id   BIGSERIAL PRIMARY KEY,
         name TEXT NOT NULL
     )
-`, nil)
+`)
 
+// With named arguments
 container.Exec(
     `INSERT INTO users (name) VALUES (@name)`,
     pgx.NamedArgs{"name": "Alice"},
@@ -86,16 +88,19 @@ Usage in tests:
 
 ```go
 func TestOrders(t *testing.T) {
+    s := suite.New(t)
+    ctx := context.Background()
+
     pg, _ := postgres.New(ctx)
-    t.Cleanup(func() { pg.Terminate(context.Background()) })
+    s.Add(pg)
 
     // Create factories bound to container
     InsertUser := InsertUser(pg)
     InsertOrder := InsertOrder(pg)
 
     testground.Apply(t,
-        pg.Exec(`CREATE TABLE users ...`, nil),
-        pg.Exec(`CREATE TABLE orders ...`, nil),
+        pg.Exec(`CREATE TABLE users ...`),
+        pg.Exec(`CREATE TABLE orders ...`),
         InsertUser("Alice"),
         InsertUser("Bob"),
         InsertOrder(1, 100),
