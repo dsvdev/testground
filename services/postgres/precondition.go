@@ -21,17 +21,16 @@ func (c *Container) Exec(sql string, args ...pgx.NamedArgs) testground.Precondit
 }
 
 func (p *execPrecondition) Apply(ctx context.Context, t *testing.T) error {
-	conn, err := p.container.Conn(ctx)
+	pool, err := p.container.Pool(ctx)
 	if err != nil {
 		return fmt.Errorf("connect: %w", err)
 	}
-	defer conn.Close(ctx)
 
-	var args pgx.NamedArgs
+	var namedArgs pgx.NamedArgs
 	if len(p.args) > 0 {
-		args = p.args[0]
+		namedArgs = p.args[0]
 	}
 
-	_, err = conn.Exec(ctx, p.sql, args)
+	_, err = pool.Exec(ctx, p.sql, namedArgs)
 	return err
 }

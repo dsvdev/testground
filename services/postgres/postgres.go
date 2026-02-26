@@ -3,8 +3,10 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
@@ -12,8 +14,10 @@ import (
 )
 
 type Container struct {
-	base *container.Base
-	cfg  config
+	base   *container.Base
+	cfg    config
+	poolMu sync.Mutex
+	pool   *pgxpool.Pool
 }
 
 func New(ctx context.Context, opts ...Option) (*Container, error) {
@@ -86,6 +90,29 @@ func (c *Container) Conn(ctx context.Context) (*pgx.Conn, error) {
 	return pgx.Connect(ctx, c.ConnectionString())
 }
 
+// Pool returns a connection pool to the container, creating it lazily.
+// If the previous attempt failed the next call retries the initialization.
+// The pool is closed in Terminate.
+func (c *Container) Pool(ctx context.Context) (*pgxpool.Pool, error) {
+	c.poolMu.Lock()
+	defer c.poolMu.Unlock()
+	if c.pool == nil {
+		pool, err := pgxpool.New(ctx, c.ConnectionString())
+		if err != nil {
+			return nil, err
+		}
+		c.pool = pool
+	}
+	return c.pool, nil
+}
+
 func (c *Container) Terminate(ctx context.Context) error {
+	c.poolMu.Lock()
+	pool := c.pool
+	c.pool = nil
+	c.poolMu.Unlock()
+	if pool != nil {
+		pool.Close()
+	}
 	return c.base.Terminate(ctx)
 }
