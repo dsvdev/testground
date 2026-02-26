@@ -2,12 +2,48 @@ package suite
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 )
 
 type Managed interface {
 	Terminate(ctx context.Context) error
+}
+
+type MainSuite struct {
+	m          *testing.M
+	mu         sync.Mutex
+	containers []Managed
+}
+
+func NewMain(m *testing.M) *MainSuite {
+	return &MainSuite{m: m}
+}
+
+func (s *MainSuite) Add(c Managed) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.containers = append(s.containers, c)
+}
+
+func (s *MainSuite) Cleanup() {
+	s.mu.Lock()
+	containers := s.containers
+	s.mu.Unlock()
+
+	ctx := context.Background()
+	for i := len(containers) - 1; i >= 0; i-- {
+		if err := containers[i].Terminate(ctx); err != nil {
+			fmt.Printf("warning: failed to terminate container: %v\n", err)
+		}
+	}
+}
+
+func (s *MainSuite) Run() int {
+	code := s.m.Run()
+	s.Cleanup()
+	return code
 }
 
 type Suite struct {

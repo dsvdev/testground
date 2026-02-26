@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"testground"
+	"github.com/dsvdev/testground"
 )
 
 type execPrecondition struct {

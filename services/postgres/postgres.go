@@ -37,8 +37,18 @@ func New(ctx context.Context, opts ...Option) (*Container, error) {
 		},
 		WaitingFor: wait.ForAll(
 			wait.ForListeningPort("5432/tcp"),
-			wait.ForLog("database system is ready to accept connections"),
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2),
 		),
+	}
+
+	if cfg.networkName != "" {
+		req.Networks = []string{cfg.networkName}
+		if cfg.networkAlias != "" {
+			req.NetworkAliases = map[string][]string{
+				cfg.networkName: {cfg.networkAlias},
+			}
+		}
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -75,6 +85,19 @@ func (c *Container) ConnectionString() string {
 		c.cfg.password,
 		c.host,
 		c.port,
+		c.cfg.database,
+	)
+}
+
+func (c *Container) NetworkConnectionString() string {
+	host := c.cfg.networkAlias
+	if host == "" {
+		host = c.host
+	}
+	return fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=disable",
+		c.cfg.user,
+		c.cfg.password,
+		host,
 		c.cfg.database,
 	)
 }

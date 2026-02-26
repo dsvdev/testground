@@ -1,11 +1,15 @@
 package postgres
 
+import "github.com/dsvdev/testground"
+
 type config struct {
-	version  string
-	database string
-	user     string
-	password string
-	port     string
+	version      string
+	database     string
+	user         string
+	password     string
+	port         string
+	networkName  string
+	networkAlias string
 }
 
 func defaultConfig() config {
@@ -47,5 +51,17 @@ func WithPassword(p string) Option {
 func WithPort(p string) Option {
 	return func(c *config) {
 		c.port = p
+	}
+}
+
+func WithNetwork(n *testground.Network) Option {
+	return func(c *config) {
+		c.networkName = n.Name()
+	}
+}
+
+func WithNetworkAlias(alias string) Option {
+	return func(c *config) {
+		c.networkAlias = alias
 	}
 }

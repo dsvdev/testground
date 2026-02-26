@@ -8,8 +8,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"testground"
-	"testground/services/postgres"
+	"github.com/dsvdev/testground"
+	"github.com/dsvdev/testground/services/postgres"
 )
 
 // Example: user-defined precondition factory
