@@ -55,6 +55,18 @@ func TestUserSuite(t *testing.T) {
 }
 ```
 
+## Test Data
+
+```go
+import "github.com/dsvdev/testground/faker"
+
+name := faker.RandomString(10)
+age  := faker.RandomInt(18, 65)
+id   := faker.RandomUUID()
+```
+
+See [faker](docs/faker.md) for full API reference.
+
 ## Documentation
 
 See [docs](docs/README.md) for full documentation.
