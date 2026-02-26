@@ -108,6 +108,56 @@ func TestSuite_HooksCalledInOrder(t *testing.T) {
 	}
 }
 
+func mustPanic(t *testing.T, fn func()) {
+	t.Helper()
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic, but none occurred")
+		}
+	}()
+	fn()
+}
+
+func TestSuite_BeforeAllPanicsAfterRun(t *testing.T) {
+	t.Run("inner", func(t *testing.T) {
+		s := suite.New(t)
+		s.Run("first", func(t *testing.T) {})
+		mustPanic(t, func() {
+			s.BeforeAll(func(ctx context.Context) {})
+		})
+	})
+}
+
+func TestSuite_AfterAllPanicsAfterRun(t *testing.T) {
+	t.Run("inner", func(t *testing.T) {
+		s := suite.New(t)
+		s.Run("first", func(t *testing.T) {})
+		mustPanic(t, func() {
+			s.AfterAll(func(ctx context.Context) {})
+		})
+	})
+}
+
+func TestSuite_BeforeEachPanicsAfterRun(t *testing.T) {
+	t.Run("inner", func(t *testing.T) {
+		s := suite.New(t)
+		s.Run("first", func(t *testing.T) {})
+		mustPanic(t, func() {
+			s.BeforeEach(func(ctx context.Context) {})
+		})
+	})
+}
+
+func TestSuite_AfterEachPanicsAfterRun(t *testing.T) {
+	t.Run("inner", func(t *testing.T) {
+		s := suite.New(t)
+		s.Run("first", func(t *testing.T) {})
+		mustPanic(t, func() {
+			s.AfterEach(func(ctx context.Context) {})
+		})
+	})
+}
+
 func TestSuite_IsolatedContainers(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()

@@ -5,7 +5,7 @@ Suite manages container lifecycle and test hooks automatically.
 ## Installation
 
 ```go
-import "testground/suite"
+import "github.com/dsvdev/testground/suite"
 ```
 
 ## Suite — for `Test*` functions
@@ -65,6 +65,12 @@ Execution order:
 ```
 BeforeAll → (BeforeEach → test → AfterEach)* → AfterAll
 ```
+
+> **All hooks must be registered before the first `s.Run()` call.**
+> Calling any hook-registration method after `s.Run()` has been called panics immediately with a descriptive message, e.g.:
+> `panic: suite: BeforeAll must be called before the first Run`
+>
+> This catches the silent bug where a late-registered hook appears to succeed but never actually executes.
 
 ## MainSuite — for `TestMain`
 

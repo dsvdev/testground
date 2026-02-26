@@ -57,6 +57,7 @@ type Suite struct {
 	afterEach  []func(ctx context.Context)
 
 	beforeOnce sync.Once
+	started    bool
 }
 
 func New(t *testing.T) *Suite {
@@ -92,22 +93,45 @@ func (s *Suite) Add(c Managed) {
 }
 
 func (s *Suite) BeforeAll(fn func(ctx context.Context)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		panic("suite: BeforeAll must be called before the first Run")
+	}
 	s.beforeAll = append(s.beforeAll, fn)
 }
 
 func (s *Suite) AfterAll(fn func(ctx context.Context)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		panic("suite: AfterAll must be called before the first Run")
+	}
 	s.afterAll = append(s.afterAll, fn)
 }
 
 func (s *Suite) BeforeEach(fn func(ctx context.Context)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		panic("suite: BeforeEach must be called before the first Run")
+	}
 	s.beforeEach = append(s.beforeEach, fn)
 }
 
 func (s *Suite) AfterEach(fn func(ctx context.Context)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		panic("suite: AfterEach must be called before the first Run")
+	}
 	s.afterEach = append(s.afterEach, fn)
 }
 
 func (s *Suite) Run(name string, fn func(t *testing.T)) {
+	s.mu.Lock()
+	s.started = true
+	s.mu.Unlock()
 	s.t.Run(name, func(t *testing.T) {
 		ctx := context.Background()
 
