@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dsvdev/testground"
-	httpclient "github.com/dsvdev/testground/client/http"
+	"github.com/dsvdev/testground/client/httpclient"
 	"github.com/dsvdev/testground/service"
 	"github.com/dsvdev/testground/services/postgres"
 	"github.com/dsvdev/testground/suite"

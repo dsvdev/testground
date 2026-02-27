@@ -1,4 +1,4 @@
-package http_test
+package httpclient_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	client "github.com/dsvdev/testground/client/http"
+	client "github.com/dsvdev/testground/client/httpclient"
 )
 
 func TestClient_Get(t *testing.T) {

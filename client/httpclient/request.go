@@ -1,4 +1,4 @@
-package http
+package httpclient
 
 type requestConfig struct {
 	headers     map[string]string
