@@ -2,20 +2,25 @@ package integration_test
 
 import (
 	"fmt"
-	"github.com/dsvdev/testground/ai"
+	"os"
 	"testing"
+
+	"github.com/dsvdev/testground/ai"
 )
 
 func TestAiPlan(t *testing.T) {
+	if os.Getenv("ANTHROPIC_API_KEY") == "" {
+		t.Skip("ANTHROPIC_API_KEY not set")
+	}
+
 	analyze, err := ai.Analyze("../../simple_backend")
 	if err != nil {
 		t.Fatal(err)
-		return
 	}
 
 	generate, err := ai.Generate(t.Context(), llmClient, analyze)
 	if err != nil {
-		return
+		t.Fatal("generate:", err)
 	}
 
 	for _, story := range generate {

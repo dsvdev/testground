@@ -66,7 +66,7 @@ func TestMain(m *testing.M) {
 	s.Add(svcContainer)
 
 	client = httpclient.New(httpclient.WithBaseURL(svcContainer.URL()))
-	apiKey := os.Getenv("ANTHROPICS_API_KEY")
+	apiKey := os.Getenv("ANTHROPIC_API_KEY")
 	llmClient = adapters.NewAnthropic(
 		apiKey,
 		adapters.WithModel(string(anthropic.ModelClaudeHaiku4_5)))
