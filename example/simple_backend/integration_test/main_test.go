@@ -66,8 +66,9 @@ func TestMain(m *testing.M) {
 	s.Add(svcContainer)
 
 	client = httpclient.New(httpclient.WithBaseURL(svcContainer.URL()))
+	apiKey := os.Getenv("ANTHROPICS_API_KEY")
 	llmClient = adapters.NewAnthropic(
-		"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",
+		apiKey,
 		adapters.WithModel(string(anthropic.ModelClaudeHaiku4_5)))
 	aiAgent = ai.New(ai.WithLLM(llmClient), ai.WithPostgres(pgContainer), ai.WithServiceURL(svcContainer.URL()), ai.WithObserver(ai.NewConsoleObserver()))
 
