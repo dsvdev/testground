@@ -9,6 +9,7 @@ No Docker Compose. No shared environments. No cleanup.
 ## Services
 
 - [PostgreSQL](docs/services/postgres.md)
+- [Kafka](docs/services/kafka.md) — Zookeeper + Kafka broker
 
 ## Client
 
