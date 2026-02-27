@@ -12,7 +12,7 @@ No Docker Compose. No shared environments. No cleanup.
 
 ## Client
 
-- [HTTP](docs/client/http.md) — fluent HTTP client with assertions
+- [HTTP](docs/client/httpclient.md) — fluent HTTP client with assertions
 
 ## Quick Start
 
@@ -54,6 +54,25 @@ func TestUserSuite(t *testing.T) {
     })
 }
 ```
+
+## HTTP Client
+
+```go
+import "testground/client/httpclient"
+
+func TestAPI(t *testing.T) {
+    ctx := context.Background()
+    client := httpclient.New(httpclient.WithBaseURL("http://localhost:8080"))
+
+    resp, err := client.Get(ctx, "/users/1")
+    require.NoError(t, err)
+
+    var user User
+    resp.AssertOK(t).AssertJSON(t, &user)
+}
+```
+
+See [docs/client/httpclient.md](docs/client/httpclient.md) for full API reference.
 
 ## Test Data
 

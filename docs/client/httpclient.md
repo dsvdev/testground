@@ -5,7 +5,7 @@ HTTP client designed for integration testing with fluent assertions.
 ## Installation
 
 ```go
-import "testground/client/http"
+import "testground/client/httpclient"
 ```
 
 ## Quick Start
@@ -13,7 +13,7 @@ import "testground/client/http"
 ```go
 func TestAPI(t *testing.T) {
     ctx := context.Background()
-    client := http.New(http.WithBaseURL("http://localhost:8080"))
+    client := httpclient.New(httpclient.WithBaseURL("http://localhost:8080"))
 
     resp, err := client.Get(ctx, "/users/1")
     require.NoError(t, err)
@@ -36,19 +36,19 @@ func TestAPI(t *testing.T) {
 
 ```go
 // Basic client
-client := http.New(http.WithBaseURL("http://localhost:8080"))
+client := httpclient.New(httpclient.WithBaseURL("http://localhost:8080"))
 
 // With authentication
-client := http.New(
-    http.WithBaseURL("http://localhost:8080"),
-    http.WithBearerToken("my-jwt-token"),
+client := httpclient.New(
+    httpclient.WithBaseURL("http://localhost:8080"),
+    httpclient.WithBearerToken("my-jwt-token"),
 )
 
 // With custom headers
-client := http.New(
-    http.WithBaseURL("http://localhost:8080"),
-    http.WithHeader("X-API-Key", "secret"),
-    http.WithTimeout(10 * time.Second),
+client := httpclient.New(
+    httpclient.WithBaseURL("http://localhost:8080"),
+    httpclient.WithHeader("X-API-Key", "secret"),
+    httpclient.WithTimeout(10 * time.Second),
 )
 ```
 
@@ -77,14 +77,14 @@ ctx := context.Background()
 
 // Add query parameters
 client.Get(ctx, "/users",
-    http.WithQueryParam("page", "1"),
-    http.WithQueryParam("limit", "10"),
+    httpclient.WithQueryParam("page", "1"),
+    httpclient.WithQueryParam("limit", "10"),
 )
 // → GET /users?page=1&limit=10
 
 // Add request-specific header
 client.Get(ctx, "/resource",
-    http.WithRequestHeader("X-Custom", "value"),
+    httpclient.WithRequestHeader("X-Custom", "value"),
 )
 
 // With timeout context
@@ -175,7 +175,7 @@ func TestCreateUser(t *testing.T) {
     defer svc.Close()
 
     // Create HTTP client
-    client := http.New(http.WithBaseURL(svc.URL))
+    client := httpclient.New(httpclient.WithBaseURL(svc.URL))
 
     // Setup test data
     testground.Apply(t,
