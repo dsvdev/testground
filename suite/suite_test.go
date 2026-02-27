@@ -181,12 +181,6 @@ func TestSuite_IsolatedContainers(t *testing.T) {
 			mu.Unlock()
 		})
 
-		// After test A, check if first container is gone
-		mu.Lock()
-		// We can't directly check termination, but we can verify
-		// the second container gets a different port
-		mu.Unlock()
-
 		s.Run("test B", func(t *testing.T) {
 			inner := suite.New(t)
 			pg, err := postgres.New(ctx)
