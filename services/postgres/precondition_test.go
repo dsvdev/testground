@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/dsvdev/testground"
+	"github.com/dsvdev/testground/faker"
 	"github.com/dsvdev/testground/services/postgres"
 )
 
@@ -79,5 +80,37 @@ func TestExecPrecondition(t *testing.T) {
 	err = conn.QueryRow(ctx, "SELECT name FROM users WHERE name = 'Charlie'").Scan(&name)
 	if !errors.Is(err, pgx.ErrNoRows) {
 		t.Errorf("SELECT non-existent user: got err = %v, want pgx.ErrNoRows", err)
+	}
+}
+
+func TestExecPrecondition_PoolReuse(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	pg, err := postgres.New(ctx)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	t.Cleanup(func() { pg.Terminate(context.Background()) })
+
+	insertUser := insertUser(pg)
+
+	preconditions := []testground.Precondition{
+		pg.Exec(`CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL)`),
+	}
+	for range 10 {
+		preconditions = append(preconditions, insertUser(faker.RandomString(8)))
+	}
+
+	testground.Apply(t, preconditions...)
+
+	pool, err := pg.Pool(ctx)
+	if err != nil {
+		t.Fatalf("Pool() error = %v", err)
+	}
+
+	stat := pool.Stat()
+	if stat.TotalConns() > 2 {
+		t.Errorf("TotalConns = %d after 10 sequential preconditions, want <= 2", stat.TotalConns())
 	}
 }
