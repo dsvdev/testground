@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -26,6 +27,7 @@ func runStory(ctx context.Context, llm LLMClient, executor *Executor, tools []To
 		effectiveMax = cfg.StepsRemaining
 	}
 
+	slog.Info("story start", "index", index+1, "total", total, "title", story.Title)
 	obs.OnStoryStart(index, total, story)
 
 	prompt := buildRunPrompt(executor, story)
@@ -45,6 +47,7 @@ func runStory(ctx context.Context, llm LLMClient, executor *Executor, tools []To
 			story.Error = fmt.Sprintf("llm error: %v", err)
 			story.Duration = time.Since(start)
 			story.StepResults = stepResults
+			slog.Info("story done", "title", story.Title, "status", story.Status, "steps", steps, "duration", story.Duration)
 			obs.OnStoryDone(index, total, story)
 			return storyResult{story, steps}
 		}
@@ -70,6 +73,7 @@ func runStory(ctx context.Context, llm LLMClient, executor *Executor, tools []To
 		// Execute each tool call and collect results
 		for _, tc := range resp.ToolCalls {
 			toolName, input, output := executor.Execute(ctx, tc)
+			slog.Info("tool call", "tool", toolName, "step", steps+1)
 			sr := StepResult{Tool: toolName, Input: input, Output: output}
 			stepResults = append(stepResults, sr)
 			obs.OnStep(index, total, sr)
@@ -92,6 +96,7 @@ func runStory(ctx context.Context, llm LLMClient, executor *Executor, tools []To
 	story.Status = status
 	story.Error = errMsg
 	story.Duration = time.Since(start)
+	slog.Info("story done", "title", story.Title, "status", story.Status, "steps", steps, "duration", story.Duration)
 	obs.OnStoryDone(index, total, story)
 	return storyResult{story, steps}
 }
